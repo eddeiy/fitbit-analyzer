@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.angular/
+.DS_Store
+*.log
+
+# secrets and personal health data
+.env
+server/.env
+data/*.db
+data/*.db-*

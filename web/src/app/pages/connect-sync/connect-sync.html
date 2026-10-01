@@ -1,0 +1,127 @@
+<div class="page">
+  @if (loadError(); as error) {
+    <p-message severity="error" [text]="error" />
+  }
+
+  @if (status(); as s) {
+    <div class="cards">
+      <p-card header="Google Health connection">
+        @if (!s.connection.configured) {
+          <p-message severity="warn">
+            OAuth client not configured. Copy <code>server/.env.example</code> to <code>server/.env</code>, add your
+            Google client ID and secret, then restart the server.
+          </p-message>
+        } @else if (s.connection.connected) {
+          <p class="state"><p-tag severity="success" value="Connected" /></p>
+          <dl>
+            <dt>Health user ID</dt>
+            <dd class="mono">{{ s.connection.healthUserId ?? '–' }}</dd>
+            <dt>Fitbit legacy ID</dt>
+            <dd class="mono">{{ s.connection.legacyUserId ?? '–' }}</dd>
+            <dt>Connected</dt>
+            <dd>{{ s.connection.connectedAt | date: 'medium' }}</dd>
+          </dl>
+          <p class="muted small">
+            While the Google Cloud app is in Testing mode, consent expires after about 7 days. Reconnect when syncs start
+            failing.
+          </p>
+        } @else {
+          <p class="state"><p-tag severity="warn" value="Not connected" /></p>
+          <p class="muted">Sign in with the Google account your Fitbit Air is linked to.</p>
+        }
+
+        <ng-template #footer>
+          @if (s.connection.configured) {
+            <div class="toolbar">
+              <a pButton [href]="loginUrl" [outlined]="s.connection.connected">
+                <i class="pi pi-google" pButtonIcon></i>
+                <span pButtonLabel>{{ s.connection.connected ? 'Reconnect' : 'Connect Google account' }}</span>
+              </a>
+              @if (s.connection.connected) {
+                <p-button label="Disconnect" icon="pi pi-sign-out" severity="secondary" [text]="true" (onClick)="disconnect()" />
+              }
+            </div>
+          }
+        </ng-template>
+      </p-card>
+
+      <p-card header="Sync">
+        <p class="muted">
+          Incremental: each data type continues from where the last sync stopped. The first sync backfills
+          {{ s.backfillDays }} days, or from the date you pick below.
+        </p>
+        <div class="toolbar">
+          <p-datepicker
+            [ngModel]="backfillFrom()"
+            (ngModelChange)="backfillFrom.set($event)"
+            [maxDate]="today"
+            [showIcon]="true"
+            [showClear]="true"
+            dateFormat="yy-mm-dd"
+            placeholder="Backfill from (optional)"
+            [disabled]="!!running()"
+          />
+          <p-button
+            label="Sync now"
+            icon="pi pi-sync"
+            [loading]="!!running() || starting()"
+            [disabled]="!s.connection.connected"
+            (onClick)="syncNow()"
+          />
+        </div>
+        <p class="muted small">
+          {{ totalPoints() | number }} data points stored.
+          @if (s.lastRun; as run) {
+            Last run {{ run.started_at | date: 'short' }} ({{ run.status }}).
+          }
+        </p>
+      </p-card>
+    </div>
+
+    <p-card header="Data types">
+      <p-table [value]="s.types" dataKey="id" [rowGroupMode]="'subheader'" groupRowsBy="group" size="small">
+        <ng-template #header>
+          <tr>
+            <th>Type</th>
+            <th>Kind</th>
+            <th class="num">Points</th>
+            <th>Range</th>
+            <th>Last synced</th>
+            <th>Status</th>
+          </tr>
+        </ng-template>
+        <ng-template #groupheader let-t>
+          <tr>
+            <td colspan="6" class="group">{{ t.group }}</td>
+          </tr>
+        </ng-template>
+        <ng-template #body let-t>
+          <tr>
+            <td>
+              <a [routerLink]="['/data']" [queryParams]="{ type: t.id }">{{ t.label }}</a>
+              <div class="muted mono small">{{ t.id }}</div>
+            </td>
+            <td>{{ t.kind }}</td>
+            <td class="num">{{ t.count | number }}</td>
+            <td class="small">
+              @if (t.first) {
+                {{ t.first | date: 'mediumDate' }} – {{ t.last | date: 'mediumDate' }}
+              } @else {
+                <span class="muted">–</span>
+              }
+            </td>
+            <td class="small">{{ t.lastSyncedAt ? (t.lastSyncedAt | date: 'short') : '–' }}</td>
+            <td>
+              <p-tag [severity]="typeSeverity(t.id, t.lastError, t.lastSyncedAt)" [value]="typeLabel(t.id, t.lastError, t.lastSyncedAt)" />
+              @if (t.lastError && !progress().has(t.id)) {
+                <div class="error small mono" [title]="t.lastError">{{ t.lastError }}</div>
+              }
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-card>
+  } @else if (!loadError()) {
+    <p class="muted">Loading…</p>
+  }
+</div>

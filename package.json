@@ -1,0 +1,22 @@
+{
+  "name": "fitbit-analyzer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sync personal Fitbit Air data from the Google Health API into SQLite and explore it in an Angular PWA.",
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n server,web -c blue,magenta \"npm run dev -w server\" \"npm start -w web\"",
+    "build": "npm run build -w web",
+    "start": "npm start -w server",
+    "typecheck": "npm run typecheck -w server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  }
+}

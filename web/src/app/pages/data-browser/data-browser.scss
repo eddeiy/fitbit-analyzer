@@ -1,0 +1,38 @@
+.spacer {
+  flex: 1;
+}
+
+.option {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+}
+
+:host ::ng-deep .type-select {
+  min-width: 260px;
+}
+
+.small {
+  font-size: 0.85rem;
+}
+
+.toggle {
+  width: 3rem;
+}
+
+.values {
+  max-width: 480px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.raw {
+  margin: 0;
+  max-height: 420px;
+  overflow: auto;
+  padding: 0.75rem;
+  border-radius: var(--p-border-radius-md);
+  background: var(--p-content-hover-background);
+}

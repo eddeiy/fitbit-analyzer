@@ -1,0 +1,50 @@
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 1.5rem;
+}
+
+.state {
+  margin-top: 0;
+}
+
+dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0 0 1rem;
+
+  dt {
+    color: var(--p-text-muted-color);
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.small {
+  font-size: 0.85rem;
+}
+
+.num {
+  text-align: right;
+}
+
+.group {
+  font-weight: 600;
+  background: var(--p-content-hover-background);
+}
+
+.error {
+  color: var(--p-red-500);
+  max-width: 280px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+td a {
+  color: var(--p-primary-color);
+  text-decoration: none;
+}

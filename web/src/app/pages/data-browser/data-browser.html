@@ -1,0 +1,124 @@
+<div class="page">
+  <p-card>
+    <div class="toolbar">
+      <p-select
+        [options]="types()"
+        optionLabel="label"
+        optionValue="id"
+        [ngModel]="selectedType()"
+        (ngModelChange)="selectType($event)"
+        [filter]="true"
+        placeholder="Data type"
+        styleClass="type-select"
+      >
+        <ng-template #item let-t>
+          <div class="option">
+            <span>{{ t.label }}</span>
+            <span class="muted small">{{ t.count | number }}</span>
+          </div>
+        </ng-template>
+      </p-select>
+
+      <p-datepicker
+        [ngModel]="dateRange()"
+        (ngModelChange)="onRangeChange($event)"
+        selectionMode="range"
+        [readonlyInput]="true"
+        [showIcon]="true"
+        [showClear]="true"
+        dateFormat="yy-mm-dd"
+        placeholder="All dates"
+      />
+
+      <span class="spacer"></span>
+
+      @if (exportCsv(); as csv) {
+        <a pButton [href]="csv" download severity="secondary" [outlined]="true">
+          <i class="pi pi-file" pButtonIcon></i>
+          <span pButtonLabel>CSV</span>
+        </a>
+      }
+      @if (exportJson(); as json) {
+        <a pButton [href]="json" download severity="secondary" [outlined]="true">
+          <i class="pi pi-code" pButtonIcon></i>
+          <span pButtonLabel>JSON</span>
+        </a>
+      }
+    </div>
+
+    @if (selectedDef(); as def) {
+      <p class="muted small">
+        <span class="mono">{{ def.id }}</span> · {{ def.kind }} record ·
+        {{ total() | number }} points{{ range().from ? ' in range' : ' stored' }}.
+        Times are UTC{{ def.kind === 'daily' ? ' (daily types use the local calendar date)' : '' }}.
+      </p>
+    }
+  </p-card>
+
+  @if (error(); as e) {
+    <p-message severity="error" [text]="e" />
+  }
+
+  <p-card>
+    <p-table
+      [value]="rows()"
+      dataKey="name"
+      [lazy]="true"
+      (onLazyLoad)="onLazyLoad($event)"
+      [loading]="loading()"
+      [paginator]="true"
+      [rows]="pageSize()"
+      [first]="first()"
+      [totalRecords]="total()"
+      [rowsPerPageOptions]="[25, 50, 100, 500]"
+      [expandedRowKeys]="expanded()"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="{first}–{last} of {totalRecords}"
+      size="small"
+    >
+      <ng-template #header>
+        <tr>
+          <th class="toggle"></th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Values</th>
+          <th>Source</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-p let-isExpanded="expanded">
+        <tr>
+          <td class="toggle">
+            <p-button
+              type="button"
+              [text]="true"
+              [rounded]="true"
+              severity="secondary"
+              [icon]="isExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+              (onClick)="toggleRow(p.name)"
+            />
+          </td>
+          <td class="mono">{{ selectedDef()?.kind === 'daily' ? p.startTime : (p.startTime | date: 'yyyy-MM-dd HH:mm:ss' : 'UTC') }}</td>
+          <td class="mono">
+            @if (p.endTime !== p.startTime) {
+              {{ selectedDef()?.kind === 'daily' ? p.endTime : (p.endTime | date: 'yyyy-MM-dd HH:mm:ss' : 'UTC') }}
+            }
+          </td>
+          <td class="values">{{ summarize(p.dataType, p) }}</td>
+          <td class="small">{{ source(p) }}</td>
+        </tr>
+      </ng-template>
+      <ng-template #expandedrow let-p>
+        <tr>
+          <td colspan="5">
+            <pre class="mono raw">{{ p.data | json }}</pre>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="5" class="muted">No data points. Run a sync on the Connect &amp; Sync page.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>
